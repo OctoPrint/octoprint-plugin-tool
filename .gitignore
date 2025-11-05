@@ -1,0 +1,6 @@
+test-output
+__pycache__
+*.egg-info
+build
+dist
+*_cache

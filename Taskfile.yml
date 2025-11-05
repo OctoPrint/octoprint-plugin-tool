@@ -1,0 +1,37 @@
+version: "3"
+
+env:
+  TOOL: "octoprint-plugin-tool"
+
+tasks:
+  update-readme:
+    cmds:
+      - |
+        help_command="$TOOL"
+        help_output=$($help_command)
+
+        pyproject_command="$TOOL to-pyproject --help"
+        pyproject_output=$($pyproject_command)
+
+        #example_command="octoplugin to-pyproject tests/legacy-plugin"
+        #example_output=$($example_command)
+
+        awk -i inplace -v command="$help_command" -v output="$help_output" '
+          BEGIN{p=1}
+          $1=="<!--INSERT:help-->"{p=0;print;next}
+          $1=="<!--/INSERT:help-->"{print "```\n$ " command "\n" output "\n```"; p=1}
+          p
+        ' README.md
+        awk -i inplace -v command="$pyproject_command" -v output="$pyproject_output" '
+          BEGIN{p=1}
+          $1=="<!--INSERT:to-pyproject-->"{p=0;print;next}
+          $1=="<!--/INSERT:to-pyproject-->"{print "```\n$ " command "\n" output "\n```"; p=1}
+          p
+        ' README.md
+
+        #awk -i inplace -v command="$example_command" -v output="$example_output" '
+        #  BEGIN{p=1}
+        #  $1=="<!--INSERT:example-->"{p=0;print;next}
+        #  $1=="<!--/INSERT:example-->"{print "```\n$ " command "\n" output "\n```"; p=1}
+        #  p
+        #' README.md

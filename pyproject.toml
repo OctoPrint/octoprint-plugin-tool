@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "octoprint-plugin-tool"
+description = "A CLI tool to help with maintaining OctoPrint Plugins"
+version = "0.1.0"
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE.txt"]
+
+authors = [
+    {name = "Gina Häußge", email = "gina@octoprint.org"},
+]
+maintainers = [
+    {name = "Gina Häußge", email = "gina@octoprint.org"},
+]
+
+dependencies = [
+    "packaging>=24.2",
+    "pyyaml",
+    "validate-pyproject",
+    'tomli>=1.1.0 ; python_version < "3.11"',
+    "tomli-w"
+]
+requires-python = ">= 3.9"
+
+[project.scripts]
+octoprint-plugin-tool = "octoprint_plugin_tool:main"
+
+[project.optional-dependencies]
+develop = [
+    "pytest",
+    "pre-commit",
+]
+
+[project.urls]
+homepage = "https://github.com/OctoPrint/octoprint-plugin-tool/"
+issues = "https://github.com/OctoPrint/octoprint-plugin-tool/issues"
+source = "https://github.com/OctoPrint/octoprint-plugin-tool/"
