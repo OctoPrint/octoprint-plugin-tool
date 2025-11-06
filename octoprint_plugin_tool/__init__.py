@@ -443,13 +443,13 @@ def _generate_pyproject_toml(
 
     if os.path.isfile(pyproject_toml):
         # pyproject.toml already exists, so let's merge things
-        from octoprint.util import dict_merge
+        from deepmerge import always_merger
 
         log("\tFound an existing pyproject.toml, merging...")
         with open(pyproject_toml, mode="rb") as f:
             data = tomllib.load(f)
 
-        doc = dict_merge(doc, data)
+        doc = always_merger.merge(doc, data)
 
     # ensure we are producing valid pyproject data
     validator = validate_pyproject_api.Validator()
