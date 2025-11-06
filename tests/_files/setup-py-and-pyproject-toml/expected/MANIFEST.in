@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_requestspinner/templates *
+recursive-include octoprint_requestspinner/translations *
+recursive-include octoprint_requestspinner/static *

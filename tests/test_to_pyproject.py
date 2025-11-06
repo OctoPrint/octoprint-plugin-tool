@@ -1,93 +1,60 @@
-import difflib
 import os
 import shutil
 import tempfile
+from pathlib import Path
+
+import pytest
 
 from octoprint_plugin_tool import migrate_to_pyproject
 
 
-def _get_path_for(name: str) -> str:
-    return os.path.join(os.path.normpath(os.path.dirname(__file__)), "_files", name)
+def _get_path_for(name: str) -> Path:
+    return Path(
+        os.path.join(os.path.normpath(os.path.dirname(__file__)), "_files", name)
+    )
 
 
-def _copy_contents(name: str, target: str):
-    path = _get_path_for(name)
-    for item in os.listdir(path):
-        source = os.path.join(path, item)
-        if os.path.isfile(source):
-            shutil.copy2(source, target)
+def _copy_all_to(source: Path, destination: Path):
+    for item in source.iterdir():
+        shutil.copy(item, destination)
 
 
-def _compare_contents(pathA: str, pathB: str):
-    with open(pathA, newline="\n") as f:
-        contentA = f.readlines()
-
-    with open(pathB, newline="\n") as f:
-        contentB = f.readlines()
-
-    return difflib.context_diff(contentA, contentB, fromfile=pathA, tofile=pathB)
-
-
-def test_setup_py_only():
-    with tempfile.TemporaryDirectory() as folder:
-        _copy_contents("setup-py-only", folder)
-
-        assert migrate_to_pyproject(folder)
-
-        assert os.path.exists(os.path.join(folder, "pyproject.toml"))
-        assert os.path.exists(os.path.join(folder, "MANIFEST.in"))
-        assert os.path.exists(os.path.join(folder, "Taskfile.yml"))
-
-        delta = list(
-            _compare_contents(
-                os.path.join(folder, "pyproject.toml"),
-                os.path.join(_get_path_for("pyproject-toml-only"), "pyproject.toml"),
-            )
-        )
-        if delta:
-            print("\n".join(delta))
-        assert len(delta) == 0
+def _path_contents(path: Path) -> dict[str, str]:
+    contents = {}
+    for item in path.iterdir():
+        if item.is_dir():
+            for name, data in _path_contents(item):
+                contents[f"{item.name}/{name}"] = data
+        else:
+            contents[item.name] = item.read_text()
+    return contents
 
 
-def test_setup_py_and_pyproject_toml():
-    with tempfile.TemporaryDirectory() as folder:
-        _copy_contents("setup-py-and-pyproject-toml", folder)
+@pytest.mark.parametrize(
+    "folder, expected_return",
+    [
+        ("setup-py-only", True),
+        ("setup-py-and-pyproject-toml", True),
+        ("pyproject-toml-only", False),
+    ],
+)
+def test_setup_py_only(folder: str, expected_return: bool):
+    with tempfile.TemporaryDirectory() as work:
+        folder_path = _get_path_for(folder)
+        input_path = folder_path / "input"
 
-        assert migrate_to_pyproject(folder)
+        if not expected_return:
+            expected_path = input_path
+        else:
+            expected_path = folder_path / "expected"
 
-        assert os.path.exists(os.path.join(folder, "pyproject.toml"))
-        assert os.path.exists(os.path.join(folder, "MANIFEST.in"))
-        assert os.path.exists(os.path.join(folder, "Taskfile.yml"))
+        work_path = Path(work)
 
-        delta = list(
-            _compare_contents(
-                os.path.join(folder, "pyproject.toml"),
-                os.path.join(
-                    _get_path_for("setup-py-and-pyproject-toml"), "pyproject.toml"
-                ),
-            )
-        )
-        assert len(delta) > 0  # not identical to old -> updated
+        _copy_all_to(input_path, work_path)
 
-        delta = list(
-            _compare_contents(
-                os.path.join(folder, "pyproject.toml"),
-                os.path.join(_get_path_for("pyproject-toml-only"), "pyproject.toml"),
-            )
-        )
-        assert len(delta) > 0  # not identical to new -> merged
+        assert migrate_to_pyproject(work) == expected_return
 
+        expected_contents = _path_contents(expected_path)
+        actual_contents = _path_contents(work_path)
 
-def test_pyproject_toml_only():
-    with tempfile.TemporaryDirectory() as folder:
-        _copy_contents("pyproject-toml-only", folder)
-
-        assert not migrate_to_pyproject(folder)
-
-        delta = list(
-            _compare_contents(
-                os.path.join(folder, "pyproject.toml"),
-                os.path.join(_get_path_for("pyproject-toml-only"), "pyproject.toml"),
-            )
-        )
-        assert len(delta) == 0  # identical to old -> nothing touched
+        assert expected_contents == actual_contents
