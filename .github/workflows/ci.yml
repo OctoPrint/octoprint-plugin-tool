@@ -124,7 +124,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/gcode-thumbnail-tool
+      url: https://test.pypi.org/p/octoprint-plugin-tool
 
     permissions:
       id-token: write
@@ -154,7 +154,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org/p/gcode-thumbnail-tool
+      url: https://pypi.org/p/octoprint-plugin-tool
 
     permissions:
       id-token: write
