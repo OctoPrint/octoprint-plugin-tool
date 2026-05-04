@@ -334,10 +334,11 @@ def _validate_and_migrate_plugin_data(
         )
 
     # if plugin_additional_packages or additional_setup_parameters are contained and non-empty, bail
-    if any(
-        len(plugin_data.get(x, []))
-        for x in ("plugin_additional_packages", "additional_setup_parameters")
-    ):
+    additional_setup_parameters = plugin_data.get("additional_setup_parameters", {})
+    python_requires = additional_setup_parameters.pop("python_requires", None)
+    plugin_additional_packages = plugin_data.get("plugin_additional_packages", [])
+
+    if any(len(x) for x in (additional_setup_parameters, plugin_additional_packages)):
         raise RuntimeError(
             "Non-empty plugin_additional_packages or additional_setup_parameters detected, can't migrate."
         )
@@ -347,11 +348,7 @@ def _validate_and_migrate_plugin_data(
 
     # python requires
     plugin_data["plugin_python_requires"] = ">=3.7,<4"
-    if (
-        "additional_setup_parameters" in plugin_data
-        and "python_requires" in plugin_data["additional_setup_parameters"]
-    ):
-        python_requires = plugin_data["additional_setup_parameters"]["python_requires"]
+    if python_requires is not None:
         try:
             SpecifierSet(python_requires)
         except InvalidSpecifier:

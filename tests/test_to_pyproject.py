@@ -35,6 +35,7 @@ def _path_contents(path: Path) -> dict[str, str]:
     [
         ("setup-py-only", True),
         ("setup-py-and-pyproject-toml", True),
+        ("setup-py-additional-python-requires", True),
         ("pyproject-toml-only", False),
     ],
 )
