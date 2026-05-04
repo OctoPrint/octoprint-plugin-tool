@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "octoprint-plugin-tool"
 description = "A CLI tool to help with maintaining OctoPrint Plugins"
-version = "0.1.0"
+version = "0.1.1"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE.txt"]
